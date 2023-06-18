@@ -1,5 +1,5 @@
 
-name=k3d02
+name=k3d01
 
 node=k3d-$name-server-0
 
