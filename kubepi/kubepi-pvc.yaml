@@ -29,7 +29,7 @@ metadata:
   labels:
     app.kubernetes.io/name: kubepi
 spec:
-  storageClassName: default
+  #storageClassName: default
   accessModes:
     - ReadWriteOnce
   resources:
@@ -75,7 +75,7 @@ spec:
       containers:
         - name: kubepi
           image: kubeoperator/kubepi-server:v1.6.4
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
               protocol: TCP
