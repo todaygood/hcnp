@@ -105,27 +105,7 @@ docker tag nginx:latest k3d-registry.localhost:12345/nginx:latest
 docker push k3d-registry.localhost:12345/nginx:latest
 
 
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: nginx-test-registry
-  labels:
-    app: nginx-test-registry
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: nginx-test-registry
-  template:
-    metadata:
-      labels:
-        app: nginx-test-registry
-    spec:
-      containers:
-      - name: nginx-test-registry
-        image: k3d-registry:39869/mynginx:v0.1
-        ports:
-        - containerPort: 80
+
 ```
 
  kubectl run mynginx --image k3d-registry:39869/mynginx:v0.1
@@ -212,6 +192,9 @@ CURRENT   NAME                          CLUSTER           AUTHINFO              
           k3d-k3d1                      k3d-k3d1          admin@k3d-k3d1          
           k3d-k3s-default               k3d-k3s-default   admin@k3d-k3s-default   
           kubernetes-admin@kubernetes   kubernetes        kubernetes-admin  
+
+kubectl config use-context 集群名称
+
 ```
 
 ## 使用registry mirror 
@@ -237,12 +220,31 @@ Events:
 k3s的那些附加yaml
 ```bash
 
-  /var/lib/rancher/k3s/server/manifests # grep image:  * -irn 
+/var/lib/rancher/k3s/server/manifests # grep image:  * -irn 
 coredns.yaml:109:        image: rancher/mirrored-coredns-coredns:1.10.1
 local-storage.yaml:70:        image: rancher/local-path-provisioner:v0.0.24
 local-storage.yaml:158:        image: rancher/mirrored-library-busybox:1.34.1
 metrics-server/metrics-server-deployment.yaml:47:        image: rancher/mirrored-metrics-server:v0.6.2
 traefik.yaml:28:    image:
+
+/etc/rancher/k3s # ls
+k3s.yaml  registries.yaml
+/etc/rancher/k3s # cat registries.yaml 
+mirrors:
+  docker.io:
+    endpoint:
+    - https://pastack-registry.paic.com.cn
+    rewrite: {}
+configs:
+  pastack-registry.paic.com.cn:
+    auth: null
+    tls:
+      ca_file: /cert/ca.pem
+      cert_file: ""
+      key_file: ""
+      insecure_skip_verify: false
+auths: {}
+
 ```
 
 
