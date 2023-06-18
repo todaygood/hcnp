@@ -22,7 +22,7 @@ network: k3d01-net # same as `--network my-custom-net`,docker network list
 #token: superSecretToken # same as `--token superSecretToken`
 
 hostAliases: # /etc/hosts style entries to be injected into /etc/hosts in the node containers and in the NodeHosts section in CoreDNS
-  - ip: 172.17.0.1 
+  - ip: 192.168.31.247
     hostnames: 
       - pastack-registry.paic.com.cn
       - k3d01.hujun.com
