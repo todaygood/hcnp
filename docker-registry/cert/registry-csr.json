@@ -1,0 +1,17 @@
+{
+  "CN": "pastack-registry.paic.com.cn",
+  "hosts": ["127.0.0.1","pastack-registry.paic.com.cn","pastack-registry","extra-pastack-registry"],
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "CN",
+      "ST": "ShangHai",
+      "L": "ShangHai",
+      "O": "PAT",
+      "OU": "Compute"
+    }
+  ]
+}
