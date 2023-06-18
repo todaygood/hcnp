@@ -5,8 +5,9 @@ k3d 是一个将k3s安装在本地的工具。
 
 ## k3s和k3d是啥？
 
-
 参见[k3d官方文档](https://k3d.io/v5.2.1/usage/commands/k3d_cluster_create/)
+
+https://k3d.io/v5.2.1/usage/exposing_services/
 
 ## 安装记录
 
