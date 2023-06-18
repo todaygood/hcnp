@@ -30,7 +30,7 @@ kubeanOperator:
   ## define kubean-operator image
   image:
     # -- kubean-operator image registry
-    registry: ghcr.io
+    registry: pastack-registry.paic.com.cn
     # -- kubean-operator image registry
     repository: kubean-io/kubean-operator
     # -- the image tag whose default is the chart appVersion
@@ -73,7 +73,7 @@ sprayJob:
   ## define spray-job image
   image:
     # -- spray-job image registry
-    registry: ghcr.io
+    registry: pastack-registry.paic.com.cn
     # -- spray-job image registry
     repository: kubean-io/spray-job
     # -- the image tag whose default is the chart appVersion

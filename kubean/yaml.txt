@@ -1,5 +1,5 @@
 NAME: kubean
-LAST DEPLOYED: Sun Jun 18 08:19:57 2023
+LAST DEPLOYED: Sun Jun 18 21:15:35 2023
 NAMESPACE: kubean-system
 STATUS: deployed
 REVISION: 1
@@ -25,7 +25,7 @@ kubeanOperator:
   image:
     pullPolicy: IfNotPresent
     pullSecrets: []
-    registry: ghcr.io
+    registry: pastack-registry.paic.com.cn
     repository: kubean-io/kubean-operator
     tag: v0.6.3
   nameOverride: ""
@@ -45,7 +45,7 @@ kubeanOperator:
   tolerations: []
 sprayJob:
   image:
-    registry: ghcr.io
+    registry: pastack-registry.paic.com.cn
     repository: kubean-io/spray-job
     tag: v0.6.3
 
@@ -795,7 +795,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: install-crds
-          image: ghcr.io/kubean-io/spray-job:v0.6.3
+          image: pastack-registry.paic.com.cn/kubean-io/spray-job:v0.6.3
           imagePullPolicy: IfNotPresent
           workingDir: /crds
           command:
@@ -929,7 +929,7 @@ spec:
         - name: kubean
           securityContext:
             {}
-          image: "ghcr.io/kubean-io/kubean-operator:v0.6.3"
+          image: "pastack-registry.paic.com.cn/kubean-io/kubean-operator:v0.6.3"
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
