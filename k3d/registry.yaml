@@ -1,0 +1,12 @@
+mirrors:
+  docker.io:
+    endpoint:
+      - "https://pastack-registry.paic.com.cn"
+#    rewrite:
+#      "^rancher/(.*)": "/rancher-images/$1"
+
+configs:
+  "pastack-registry.paic.com.cn":
+    tls:
+      ca_file: /cert/ca.pem
+

@@ -1,0 +1,1098 @@
+NAME: kubean
+LAST DEPLOYED: Sun Jun 18 08:19:57 2023
+NAMESPACE: kubean-system
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+USER-SUPPLIED VALUES:
+null
+
+COMPUTED VALUES:
+kubeanOperator:
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+            - key: app.kubernetes.io/instance
+              operator: In
+              values:
+              - kubean
+          topologyKey: kubernetes.io/hostname
+        weight: 100
+  fullnameOverride: ""
+  image:
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+    registry: ghcr.io
+    repository: kubean-io/kubean-operator
+    tag: v0.6.3
+  nameOverride: ""
+  nodeSelector: {}
+  podAnnotations: {}
+  podSecurityContext: {}
+  replicaCount: 1
+  resources: {}
+  securityContext: {}
+  service:
+    port: 80
+    type: ClusterIP
+  serviceAccount:
+    annotations: {}
+    create: true
+    name: ""
+  tolerations: []
+sprayJob:
+  image:
+    registry: ghcr.io
+    repository: kubean-io/spray-job
+    tag: v0.6.3
+
+HOOKS:
+---
+# Source: kubean/templates/prehook-job.yml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kubean-pre-hook-job
+  namespace: kubean-system
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+---
+# Source: kubean/templates/prehook-job.yml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kubean-pre-manifests
+  namespace: kubean-system
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "2"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+data:
+  crds-configmaps.yaml: |-
+    ---
+    apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      annotations:
+        controller-gen.kubebuilder.io/version: v0.6.2
+      creationTimestamp: null
+      name: clusteroperations.kubean.io
+    spec:
+      group: kubean.io
+      names:
+        kind: ClusterOperation
+        listKind: ClusterOperationList
+        plural: clusteroperations
+        singular: clusteroperation
+      scope: Cluster
+      versions:
+      - additionalPrinterColumns:
+        - jsonPath: .metadata.creationTimestamp
+          name: Age
+          type: date
+        name: v1alpha1
+        schema:
+          openAPIV3Schema:
+            description: ClusterOperation represents the desire state and status of a
+              member cluster.
+            properties:
+              apiVersion:
+                description: 'APIVersion defines the versioned schema of this representation
+                  of an object. Servers should convert recognized schemas to the latest
+                  internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+                type: string
+              kind:
+                description: 'Kind is a string value representing the REST resource this
+                  object represents. Servers may infer this from the endpoint the client
+                  submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+                type: string
+              metadata:
+                type: object
+              spec:
+                description: Spec defines the desired state of a member cluster.
+                properties:
+                  action:
+                    type: string
+                  actionSource:
+                    default: builtin
+                    type: string
+                  actionSourceRef:
+                    properties:
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+                    required:
+                    - name
+                    - namespace
+                    type: object
+                  actionType:
+                    type: string
+                  activeDeadlineSeconds:
+                    format: int64
+                    type: integer
+                  backoffLimit:
+                    type: integer
+                  cluster:
+                    description: Cluster the name of Cluster.kubean.io.
+                    type: string
+                  entrypointSHRef:
+                    description: EntrypointSHRef will be filled by operator when it renders
+                      entrypoint.sh.
+                    properties:
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+                    required:
+                    - name
+                    - namespace
+                    type: object
+                  extraArgs:
+                    type: string
+                  hostsConfRef:
+                    description: HostsConfRef will be filled by operator when it performs
+                      backup.
+                    properties:
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+                    required:
+                    - name
+                    - namespace
+                    type: object
+                  image:
+                    type: string
+                  postHook:
+                    items:
+                      properties:
+                        action:
+                          type: string
+                        actionSource:
+                          default: builtin
+                          type: string
+                        actionSourceRef:
+                          properties:
+                            name:
+                              type: string
+                            namespace:
+                              type: string
+                          required:
+                          - name
+                          - namespace
+                          type: object
+                        actionType:
+                          type: string
+                        extraArgs:
+                          type: string
+                      required:
+                      - action
+                      - actionType
+                      type: object
+                    type: array
+                  preHook:
+                    items:
+                      properties:
+                        action:
+                          type: string
+                        actionSource:
+                          default: builtin
+                          type: string
+                        actionSourceRef:
+                          properties:
+                            name:
+                              type: string
+                            namespace:
+                              type: string
+                          required:
+                          - name
+                          - namespace
+                          type: object
+                        actionType:
+                          type: string
+                        extraArgs:
+                          type: string
+                      required:
+                      - action
+                      - actionType
+                      type: object
+                    type: array
+                  resources:
+                    description: ResourceRequirements describes the compute resource requirements.
+                    properties:
+                      claims:
+                        description: "Claims lists the names of resources, defined in
+                          spec.resourceClaims, that are used by this container. \n This
+                          is an alpha field and requires enabling the DynamicResourceAllocation
+                          feature gate. \n This field is immutable. It can only be set
+                          for containers."
+                        items:
+                          description: ResourceClaim references one entry in PodSpec.ResourceClaims.
+                          properties:
+                            name:
+                              description: Name must match the name of one entry in pod.spec.resourceClaims
+                                of the Pod where this field is used. It makes that resource
+                                available inside a container.
+                              type: string
+                          required:
+                          - name
+                          type: object
+                        type: array
+                        x-kubernetes-list-map-keys:
+                        - name
+                        x-kubernetes-list-type: map
+                      limits:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
+                        description: 'Limits describes the maximum amount of compute resources
+                          allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                        type: object
+                      requests:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
+                        description: 'Requests describes the minimum amount of compute
+                          resources required. If Requests is omitted for a container,
+                          it defaults to Limits if that is explicitly specified, otherwise
+                          to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                        type: object
+                    type: object
+                  sshAuthRef:
+                    description: SSHAuthRef will be filled by operator when it performs
+                      backup.
+                    properties:
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+                    required:
+                    - name
+                    - namespace
+                    type: object
+                  varsConfRef:
+                    description: VarsConfRef will be filled by operator when it performs
+                      backup.
+                    properties:
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+                    required:
+                    - name
+                    - namespace
+                    type: object
+                required:
+                - action
+                - actionType
+                - backoffLimit
+                - cluster
+                - image
+                type: object
+              status:
+                description: Status contains information about the current status of a
+                  cluster operation job updated periodically by cluster controller.
+                properties:
+                  action:
+                    type: string
+                  digest:
+                    description: Digest is used to avoid the change of clusterOps by others.
+                      it will be filled by operator. Do Not change this value.
+                    type: string
+                  endTime:
+                    format: date-time
+                    type: string
+                  hasModified:
+                    description: HasModified indicates the spec has been modified by others
+                      after created.
+                    type: boolean
+                  jobRef:
+                    properties:
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+                    required:
+                    - name
+                    - namespace
+                    type: object
+                  startTime:
+                    format: date-time
+                    type: string
+                  status:
+                    type: string
+                type: object
+            required:
+            - spec
+            type: object
+        served: true
+        storage: true
+        subresources:
+          status: {}
+    status:
+      acceptedNames:
+        kind: ""
+        plural: ""
+      conditions: []
+      storedVersions: []
+    
+    ---
+    apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      annotations:
+        controller-gen.kubebuilder.io/version: v0.6.2
+      creationTimestamp: null
+      name: clusters.kubean.io
+    spec:
+      group: kubean.io
+      names:
+        kind: Cluster
+        listKind: ClusterList
+        plural: clusters
+        singular: cluster
+      scope: Cluster
+      versions:
+      - additionalPrinterColumns:
+        - jsonPath: .metadata.creationTimestamp
+          name: Age
+          type: date
+        name: v1alpha1
+        schema:
+          openAPIV3Schema:
+            description: Cluster represents the desire state and status of a member cluster.
+            properties:
+              apiVersion:
+                description: 'APIVersion defines the versioned schema of this representation
+                  of an object. Servers should convert recognized schemas to the latest
+                  internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+                type: string
+              kind:
+                description: 'Kind is a string value representing the REST resource this
+                  object represents. Servers may infer this from the endpoint the client
+                  submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+                type: string
+              metadata:
+                type: object
+              spec:
+                description: Spec defines the desired state of a member cluster.
+                properties:
+                  hostsConfRef:
+                    description: HostsConfRef stores hosts.yml.
+                    properties:
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+                    required:
+                    - name
+                    - namespace
+                    type: object
+                  kubeconfRef:
+                    description: KubeConfRef stores cluster kubeconfig.
+                    properties:
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+                    required:
+                    - name
+                    - namespace
+                    type: object
+                  preCheckRef:
+                    properties:
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+                    required:
+                    - name
+                    - namespace
+                    type: object
+                  sshAuthRef:
+                    description: SSHAuthRef stores ssh key and if it is empty ,then use
+                      sshpass.
+                    properties:
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+                    required:
+                    - name
+                    - namespace
+                    type: object
+                  varsConfRef:
+                    description: VarsConfRef stores group_vars.yml.
+                    properties:
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+                    required:
+                    - name
+                    - namespace
+                    type: object
+                required:
+                - hostsConfRef
+                - varsConfRef
+                type: object
+              status:
+                description: Status contains information about the current status of a
+                  cluster updated periodically by cluster controller.
+                properties:
+                  conditions:
+                    items:
+                      properties:
+                        clusterOps:
+                          description: ClusterOps refers to the name of ClusterOperation.
+                          type: string
+                        endTime:
+                          format: date-time
+                          type: string
+                        startTime:
+                          format: date-time
+                          type: string
+                        status:
+                          type: string
+                      required:
+                      - clusterOps
+                      type: object
+                    type: array
+                required:
+                - conditions
+                type: object
+            required:
+            - spec
+            type: object
+        served: true
+        storage: true
+        subresources:
+          status: {}
+    status:
+      acceptedNames:
+        kind: ""
+        plural: ""
+      conditions: []
+      storedVersions: []
+    
+    ---
+    apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      annotations:
+        controller-gen.kubebuilder.io/version: v0.6.2
+      creationTimestamp: null
+      name: localartifactsets.kubean.io
+    spec:
+      group: kubean.io
+      names:
+        kind: LocalArtifactSet
+        listKind: LocalArtifactSetList
+        plural: localartifactsets
+        singular: localartifactset
+      scope: Cluster
+      versions:
+      - additionalPrinterColumns:
+        - jsonPath: .metadata.creationTimestamp
+          name: Age
+          type: date
+        name: v1alpha1
+        schema:
+          openAPIV3Schema:
+            properties:
+              apiVersion:
+                description: 'APIVersion defines the versioned schema of this representation
+                  of an object. Servers should convert recognized schemas to the latest
+                  internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+                type: string
+              kind:
+                description: 'Kind is a string value representing the REST resource this
+                  object represents. Servers may infer this from the endpoint the client
+                  submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+                type: string
+              metadata:
+                type: object
+              spec:
+                properties:
+                  arch:
+                    description: Arch for x86_64  aarch64... , represent for the arch
+                      of this offline package
+                    items:
+                      type: string
+                    type: array
+                  docker:
+                    items:
+                      properties:
+                        os:
+                          type: string
+                        versionRange:
+                          items:
+                            type: string
+                          type: array
+                      required:
+                      - os
+                      type: object
+                    type: array
+                  items:
+                    description: Items cni containerd kubeadm kube etcd cilium calico
+                    items:
+                      properties:
+                        name:
+                          type: string
+                        versionRange:
+                          items:
+                            type: string
+                          type: array
+                      required:
+                      - name
+                      type: object
+                    type: array
+                  kubespray:
+                    description: Kubespray , the tag of kubespray
+                    type: string
+                required:
+                - items
+                type: object
+            required:
+            - spec
+            type: object
+        served: true
+        storage: true
+        subresources:
+          status: {}
+    status:
+      acceptedNames:
+        kind: ""
+        plural: ""
+      conditions: []
+      storedVersions: []
+    
+    ---
+    apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      annotations:
+        controller-gen.kubebuilder.io/version: v0.6.2
+      creationTimestamp: null
+      name: manifests.kubean.io
+    spec:
+      group: kubean.io
+      names:
+        kind: Manifest
+        listKind: ManifestList
+        plural: manifests
+        singular: manifest
+      scope: Cluster
+      versions:
+      - additionalPrinterColumns:
+        - jsonPath: .metadata.creationTimestamp
+          name: Age
+          type: date
+        name: v1alpha1
+        schema:
+          openAPIV3Schema:
+            properties:
+              apiVersion:
+                description: 'APIVersion defines the versioned schema of this representation
+                  of an object. Servers should convert recognized schemas to the latest
+                  internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+                type: string
+              kind:
+                description: 'Kind is a string value representing the REST resource this
+                  object represents. Servers may infer this from the endpoint the client
+                  submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+                type: string
+              metadata:
+                type: object
+              spec:
+                properties:
+                  components:
+                    items:
+                      properties:
+                        defaultVersion:
+                          type: string
+                        name:
+                          type: string
+                        versionRange:
+                          items:
+                            type: string
+                          type: array
+                      required:
+                      - name
+                      type: object
+                    type: array
+                  docker:
+                    items:
+                      properties:
+                        defaultVersion:
+                          type: string
+                        os:
+                          type: string
+                        versionRange:
+                          items:
+                            type: string
+                          type: array
+                      required:
+                      - os
+                      type: object
+                    type: array
+                  kubeanVersion:
+                    description: KubeanVersion , the tag of kubean-io
+                    type: string
+                  kubesprayVersion:
+                    type: string
+                  localService:
+                    properties:
+                      filesRepo:
+                        type: string
+                      hostsMap:
+                        items:
+                          properties:
+                            address:
+                              type: string
+                            domain:
+                              type: string
+                          type: object
+                        type: array
+                      imageRepo:
+                        additionalProperties:
+                          type: string
+                        type: object
+                      imageRepoAuth:
+                        items:
+                          properties:
+                            imageRepoAddress:
+                              type: string
+                            passwordBase64:
+                              type: string
+                            userName:
+                              type: string
+                          type: object
+                        type: array
+                      imageRepoScheme:
+                        default: https
+                        type: string
+                      yumRepos:
+                        additionalProperties:
+                          items:
+                            type: string
+                          type: array
+                        type: object
+                    type: object
+                type: object
+              status:
+                properties:
+                  localAvailable:
+                    properties:
+                      components:
+                        items:
+                          properties:
+                            name:
+                              type: string
+                            versionRange:
+                              items:
+                                type: string
+                              type: array
+                          required:
+                          - name
+                          type: object
+                        type: array
+                      docker:
+                        items:
+                          properties:
+                            os:
+                              type: string
+                            versionRange:
+                              items:
+                                type: string
+                              type: array
+                          required:
+                          - os
+                          type: object
+                        type: array
+                      kubesprayImage:
+                        type: string
+                    type: object
+                type: object
+            required:
+            - spec
+            type: object
+        served: true
+        storage: true
+        subresources:
+          status: {}
+    status:
+      acceptedNames:
+        kind: ""
+        plural: ""
+      conditions: []
+      storedVersions: []
+---
+# Source: kubean/templates/prehook-job.yml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kubean-pre-hook-job
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+rules:
+  - apiGroups: ['*']
+    resources: ['*']
+    verbs: ["get", "watch", "list", "create", "update", "patch", "delete"]
+  - nonResourceURLs: ['*']
+    verbs: ["get"]
+---
+# Source: kubean/templates/prehook-job.yml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kubean-pre-hook-job
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kubean-pre-hook-job
+subjects:
+  - kind: ServiceAccount
+    name: kubean-pre-hook-job
+    namespace: kubean-system
+---
+# Source: kubean/templates/prehook-job.yml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "kubean-pre-hook-install-crds"
+  namespace: kubean-system
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "3"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    metadata:
+      name: kubean
+      labels:
+        app.kubernetes.io/instance: "kubean"
+    spec:
+      serviceAccountName: kubean-pre-hook-job
+      restartPolicy: Never
+      containers:
+        - name: install-crds
+          image: ghcr.io/kubean-io/spray-job:v0.6.3
+          imagePullPolicy: IfNotPresent
+          workingDir: /crds
+          command:
+            - /bin/sh
+            - -c
+            - |
+              bash <<'EOF'
+              set -ex
+              kubectl apply --server-side -f /crds --force-conflicts
+              EOF
+          volumeMounts:
+            - name: crds
+              mountPath: /crds
+      volumes:
+        - name: crds
+          configMap:
+            name: kubean-pre-manifests
+MANIFEST:
+---
+# Source: kubean/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kubean
+  namespace: kubean-system
+  labels:
+    kubean.io/kubean-operator: sa
+    app.kubernetes.io/name: kubean
+    app.kubernetes.io/instance: kubean
+    app.kubernetes.io/managed-by: Helm
+---
+# Source: kubean/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kubean-config
+  namespace: kubean-system
+  labels:
+    app.kubernetes.io/name: kubean
+    app.kubernetes.io/instance: kubean
+    app.kubernetes.io/managed-by: Helm
+data:
+  BACKEND_LIMIT: "10"
+---
+# Source: kubean/templates/clusterrole.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kubean
+rules:
+  - apiGroups: ['*']
+    resources: ['*']
+    verbs: ['*']
+  - nonResourceURLs: ['*']
+    verbs: ['*']
+  - apiGroups: ['certificates.k8s.io']
+    resourceNames: ['kubernetes.io/*']
+    resources: ['signers']
+    verbs: ['approve']
+  - apiGroups: ['rbac.authorization.k8s.io']
+    resources: ['clusterroles']
+    verbs: ['*']
+  - apiGroups: ['authentication.k8s.io']
+    resources: ['*']
+    verbs: ['*']
+  - apiGroups: ['authorization.k8s.io']
+    resources: ['*']
+    verbs: ['*']
+---
+# Source: kubean/templates/clusterrolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kubean
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kubean
+subjects:
+  - kind: ServiceAccount
+    name: kubean
+    namespace: kubean-system
+---
+# Source: kubean/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubean
+  namespace: kubean-system
+  labels:
+    app.kubernetes.io/name: kubean
+    app.kubernetes.io/instance: kubean
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: kubean
+    app.kubernetes.io/instance: kubean
+---
+# Source: kubean/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubean
+  namespace: kubean-system
+  labels:
+    app.kubernetes.io/name: kubean
+    app.kubernetes.io/instance: kubean
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kubean
+      app.kubernetes.io/instance: kubean
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kubean
+        app.kubernetes.io/instance: kubean
+    spec:
+      serviceAccountName: kubean
+      securityContext:
+        {}
+      containers:
+        - name: kubean
+          securityContext:
+            {}
+          image: "ghcr.io/kubean-io/kubean-operator:v0.6.3"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          resources:
+            {}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app.kubernetes.io/instance
+                  operator: In
+                  values:
+                  - kubean
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+---
+# Source: kubean/templates/manifest.cr.yaml
+apiVersion: "kubean.io/v1alpha1"
+kind: "Manifest"
+metadata:
+  name: "kubeaninfomanifest-v0-6-3"
+spec:
+  kubesprayVersion: "280e4e3"
+  kubeanVersion: "v0.6.3"
+  docker:
+    - os: "redhat-7"
+      defaultVersion: "20.10"
+      versionRange:
+        - latest
+        - "18.09"
+        - "19.03"
+        - "20.10"
+        - stable
+        - edge
+    - os: "debian"
+      defaultVersion: "20.10"
+      versionRange:
+        - latest
+        - "18.09"
+        - "19.03"
+        - "20.10"
+        - stable
+        - edge
+    - os: "ubuntu"
+      defaultVersion: "20.10"
+      versionRange:
+        - latest
+        - "18.09"
+        - "19.03"
+        - "20.10"
+        - stable
+        - edge
+  components:
+    - name: "cni"
+      defaultVersion: "v1.3.0"
+      versionRange:
+        - "v1.0.1"
+        - "v1.1.1"
+        - "v1.2.0"
+        - "v1.3.0"
+    - name: "containerd"
+      defaultVersion: "1.7.1"
+      versionRange:
+        - "1.5.5"
+        - "1.5.7"
+        - "1.5.8"
+        - "1.5.9"
+        - "1.5.10"
+        - "1.5.11"
+        - "1.5.12"
+        - "1.5.13"
+        - "1.5.14"
+        - "1.5.15"
+        - "1.5.16"
+        - "1.5.17"
+        - "1.5.18"
+        - "1.6.0"
+        - "1.6.1"
+        - "1.6.2"
+        - "1.6.3"
+        - "1.6.4"
+        - "1.6.5"
+        - "1.6.6"
+        - "1.6.7"
+        - "1.6.8"
+        - "1.6.9"
+        - "1.6.10"
+        - "1.6.11"
+        - "1.6.12"
+        - "1.6.13"
+        - "1.6.14"
+        - "1.6.15"
+        - "1.6.16"
+        - "1.6.17"
+        - "1.6.18"
+        - "1.6.19"
+        - "1.6.20"
+        - "1.6.21"
+        - "1.7.0"
+        - "1.7.1"
+    - name: "kube"
+      defaultVersion: "v1.26.5"
+      versionRange:
+        - "v1.27.2"
+        - "v1.26.5"
+        - "v1.26.4"
+        - "v1.26.3"
+        - "v1.26.2"
+        - "v1.26.1"
+        - "v1.26.0"
+        - "v1.25.10"
+        - "v1.25.9"
+        - "v1.25.8"
+        - "v1.25.7"
+        - "v1.25.6"
+        - "v1.25.5"
+        - "v1.25.4"
+        - "v1.25.3"
+        - "v1.25.2"
+        - "v1.25.1"
+        - "v1.25.0"
+    - name: "calico"
+      defaultVersion: "v3.25.1"
+      versionRange:
+        - "v3.25.1"
+        - "v3.25.0"
+        - "v3.24.6"
+        - "v3.24.5"
+        - "v3.23.3"
+        - "v3.22.4"
+    - name: "cilium"
+      defaultVersion: "v1.13.3"
+      versionRange: []
+    - name: "flannel"
+      versionRange: []
+      defaultVersion: "v0.21.4"
+    - name: "kube-ovn"
+      versionRange: []
+      defaultVersion: "v1.11.5"
+    - name: "etcd"
+      defaultVersion: "v3.5.6"
+      versionRange:
+        - "v3.5.7"
+        - "v3.5.6"
+
+NOTES:
+Thank you for installing kubean.
+
+Chart Information:
+    Chart Name: kubean
+    Chart Description: A Helm chart for kubean
+
+Release Information:
+    Release Name: kubean
+    Release Namespace: kubean-system
+
+To learn more about the release, try:
+
+  $ helm status kubean -n kubean-system
+  $ helm get all kubean -n kubean-system
+
+Documention: https://github.com/kubean-io/kubean/blob/main/README.md
