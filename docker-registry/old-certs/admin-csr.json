@@ -1,0 +1,21 @@
+{
+          "CN": "admin",
+          "hosts": ["registry.pacloud.com",
+		           "www.registry.pacloud.com",
+				   "https://www.registry.pacloud.com",
+                   "127.0.0.1"],
+          "key": {
+            "algo": "rsa",
+            "size": 2048
+          },
+          "names": [
+            {
+              "C": "CN",
+              "ST": "GuangDong",
+              "L": "ShenZhen",
+              "O": "PAT",
+              "OU": "Compute"
+            }
+          ]
+}
+
