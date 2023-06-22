@@ -1,0 +1,6 @@
+registry:
+   url: https://pastack-registry.paic.com.cn/v2
+   name: pastack-registry.paic.com.cn
+   readonly: false
+   auth:
+     enabled: false
