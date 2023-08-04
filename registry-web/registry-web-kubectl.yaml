@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: docker-registry-frontend
+  name: docker-registry-frontend
+  namespace: droneci
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: docker-registry-frontend
+  template:
+    metadata:
+      labels:
+        app: docker-registry-frontend
+    spec:
+      containers:
+        - env:
+            - name: "ENV_DOCKER_REGISTRY_HOST"
+              value: "registry"
+            - name: "ENV_DOCKER_REGISTRY_PORT"
+              value: "5000"
+          image: "konradkleine/docker-registry-frontend:v2"
+          imagePullPolicy: IfNotPresent
+          name: docker-registry-frontend
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: docker-registry-frontend
+  name: docker-registry-frontend
+  namespace: droneci
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 80
+  selector:
+    app: docker-registry-frontend
+  type: NodePort
+
